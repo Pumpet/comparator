@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<Profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DiffOnly>false</DiffOnly>
+  <OnlyA>true</OnlyA>
+  <OnlyB>true</OnlyB>
+  <MatchInOrder>false</MatchInOrder>
+  <MatchAllPairs>false</MatchAllPairs>
+  <CheckRepeats>false</CheckRepeats>
+  <TryConvert>false</TryConvert>
+  <NullAsStr>false</NullAsStr>
+  <CaseSens>false</CaseSens>
+  <Send>false</Send>
+  <ResType>Excel</ResType>
+  <TimeInResFile>false</TimeInResFile>
+  <ResMail>Attachment</ResMail>
+  <SrcA>
+    <Name>Orders Ship 1</Name>
+    <SrcType>Database</SrcType>
+    <Content xsi:type="DbContent">
+      <Fields>
+        <field>OrderID</field>
+        <field>CustomerID</field>
+        <field>OrderDate</field>
+        <field>Freight</field>
+        <field>ShipRegion</field>
+        <field>ShipCountry</field>
+      </Fields>
+      <Provider>OleDB</Provider>
+      <Server>.\SQLEXPRESS</Server>
+      <DB>Northwind</DB>
+      <Login />
+      <CommandTimeout>15</CommandTimeout>
+      <SQL>declare @Date smalldatetime
+select @Date = '19970101'
+select 
+  OrderID
+, CustomerID
+, OrderDate
+, Freight
+, ShipRegion  
+, ShipCountry
+  from Orders
+ where OrderDate &gt;= @Date 
+ order by OrderDate
+</SQL>
+      <PwdEncr>H3iP5thsMXVJaX+/DAf6Qw==</PwdEncr>
+      <ConnStrEncr>U9C7e1yDqOxIH/sLiq+hdQFdqFSgQInxSFn4Tv2xD3ucXwNGO+q4yU0H/CYGj6DXN6ctLaZL+QhgFubh99TxRsaQRmhpnG1dptxPKbeG6Ti59yqTawVX65HsHt67ljrlCri5at7GBV2nD1XlkyybcwEmRM4Fw0n++7qAiy+6Z5s=</ConnStrEncr>
+    </Content>
+  </SrcA>
+  <SrcB>
+    <Name>Orders Ship 2</Name>
+    <SrcType>Database</SrcType>
+    <Content xsi:type="DbContent">
+      <Fields>
+        <field>OrderID</field>
+        <field>CustomerID</field>
+        <field>OrderDate</field>
+        <field>Freight</field>
+        <field>Region</field>
+        <field>ShipCountry</field>
+        <field>ShipCity</field>
+      </Fields>
+      <Provider>OleDB</Provider>
+      <CommandTimeout>15</CommandTimeout>
+      <SQL>select 
+  OrderID
+, CustomerID
+, OrderDate
+, Freight
+, isnull(ShipRegion,'no') as Region
+, ShipCountry
+, ShipCity
+  from Orders
+ where OrderDate &lt; '19980101'
+ order by OrderDate
+</SQL>
+      <PwdEncr>H3iP5thsMXVJaX+/DAf6Qw==</PwdEncr>
+      <ConnStrEncr>U9C7e1yDqOxIH/sLiq+hdQFdqFSgQInxSFn4Tv2xD3ucXwNGO+q4yU0H/CYGj6DXN6ctLaZL+QhgFubh99TxRsaQRmhpnG1dptxPKbeG6Ti59yqTawVX65HsHt67ljrlCri5at7GBV2nD1XlkyybcwEmRM4Fw0n++7qAiy+6Z5s=</ConnStrEncr>
+    </Content>
+  </SrcB>
+  <Cols>
+    <ColPair>
+      <Key>true</Key>
+      <Match>true</Match>
+      <ColA>OrderID</ColA>
+      <ColB>OrderID</ColB>
+    </ColPair>
+    <ColPair>
+      <Key>false</Key>
+      <Match>true</Match>
+      <ColA>CustomerID</ColA>
+      <ColB>CustomerID</ColB>
+    </ColPair>
+    <ColPair>
+      <Key>false</Key>
+      <Match>true</Match>
+      <ColA>OrderDate</ColA>
+      <ColB>OrderDate</ColB>
+    </ColPair>
+    <ColPair>
+      <Key>false</Key>
+      <Match>true</Match>
+      <ColA>Freight</ColA>
+      <ColB>Freight</ColB>
+    </ColPair>
+    <ColPair>
+      <Key>false</Key>
+      <Match>true</Match>
+      <ColA>ShipRegion</ColA>
+      <ColB>Region</ColB>
+    </ColPair>
+    <ColPair>
+      <Key>false</Key>
+      <Match>false</Match>
+      <ColA />
+      <ColB>ShipCity</ColB>
+    </ColPair>
+    <ColPair>
+      <Key>false</Key>
+      <Match>false</Match>
+      <ColA>ShipCountry</ColA>
+      <ColB>ShipCountry</ColB>
+    </ColPair>
+  </Cols>
+</Profile>

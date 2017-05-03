@@ -1,0 +1,58 @@
+* {
+  mso-displayed-decimal-separator:"\.";
+  mso-displayed-thousand-separator:" ";
+  font-size: 10pt;
+  font-family: Calibri;
+ }
+.dat {
+  border-collapse: collapse;
+  border: 0;
+  font-size: 10pt;
+  font-weight: 400;
+  font-family: Calibri;
+ }
+tr td {
+  border: .5pt solid silver;  
+  padding: 5;
+ }
+tr td.e { /* different data */
+  border: .5pt solid silver;  
+  color: DarkRed;
+ }
+tr td.k { /* keys */
+  border: .5pt solid silver;  
+  color: DarkBlue;
+ }
+tr td.m { /* matched data */
+  border: .5pt solid silver;  
+  color: DarkGreen;
+ }
+tr td.h { /* main headers */
+  border: 0;
+  font-size: 13pt;
+  font-weight: 700;
+  font-family: Calibri;
+}
+tr td.l { /* headers */
+  border: 0;
+  font-size: 11pt;
+  font-weight: 400;
+  font-family: Calibri;
+}
+tr.h1 td { /* column names for source A */
+  border: .5pt solid silver;  
+  background: #F5F5F5;
+ }
+tr.h2 td { /* column names for source B */
+  border-bottom: 3pt double silver;  
+  background: #DCDCDC;
+ }
+tr.r td { /* row from source B */ 
+  background: #CCFFFF;
+  border-bottom: 3pt double silver;  
+  padding: 5;
+ }
+a { /* link in headers */
+  font-size: 11pt;
+  font-weight: 400;
+}

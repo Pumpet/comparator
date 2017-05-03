@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<Config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <optionsList>
+    <Options Host="BATCH">
+      <RecentFiles />
+      <ProfileFolder />
+      <ResultFolder />
+      <LogFile />
+      <HtmlStylesFile>styles.css</HtmlStylesFile>
+      <PatternFile />
+      <SendOptions>
+        <Server />
+        <Port />
+        <Ssl>false</Ssl>
+        <User />
+        <Pwd />
+        <PwdEncr />
+        <From />
+        <FromAlias>Comparator</FromAlias>
+      </SendOptions>
+    </Options>
+  </optionsList>
+</Config>
