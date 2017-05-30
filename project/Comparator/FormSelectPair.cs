@@ -6,6 +6,7 @@ using System.Windows.Forms;
 
 namespace Comparator
 {
+  /* Form for selection fields to comparison */
   public partial class FormSelectPair : Form
   {
     public event Action<bool, bool, bool, List<string>, List<string>> SetPairs;
@@ -64,7 +65,8 @@ namespace Comparator
       else if (clb.Items.Count > 0)
         clb.SetSelected(0, true);
     }
-    
+
+    //-------------------------------------------------------------------------
     private void bSet_Click(object sender, EventArgs e)
     {
       if (SetPairs == null || (clbA.CheckedItems.Count == 0 && clbB.CheckedItems.Count == 0)) return;

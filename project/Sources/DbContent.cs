@@ -6,7 +6,7 @@ using Common;
 
 namespace Sources
 {
-  public class DbContent : SourceContent, ISqlModel // содержимое источника БД  
+  public class DbContent : SourceContent, ISqlModel 
   {
     EncrDecr ed;
     SqlController dbController;
@@ -26,12 +26,12 @@ namespace Sources
     public string ConnStr { get; set; }
     public int CommandTimeout { get; set; }
     public string SQL { get; set; }
-    /* ISqlModel.Fields реализовано в SourceContent */
+    // ISqlModel.Fields implemented in SourceContent 
     //-------------------------------------------------------------------------
-    public string PwdEncr { get { return ed.Encrypt(Pwd); } set { Pwd = ed.Decrypt(value); } } // для сохранения
-    public string ConnStrEncr { get { return ed.Encrypt(ConnStr); } set { ConnStr = ed.Decrypt(value); } } // для сохранения
+    public string PwdEncr { get { return ed.Encrypt(Pwd); } set { Pwd = ed.Decrypt(value); } } // encrypted password 
+    public string ConnStrEncr { get { return ed.Encrypt(ConnStr); } set { ConnStr = ed.Decrypt(value); } } //  encrypted connection string
     [XmlIgnore]
-    public string ConnectionInfo // краткая инфа для вью
+    public string ConnectionInfo // short info for View (SourcePanel)
     {
       get
       {
@@ -51,7 +51,7 @@ namespace Sources
       CommandTimeout = 15;
       Fields = new List<string>();
       ed = new EncrDecr(string.Empty, string.Empty);
-      dbController = SqlController.CreateSqlController(this);
+      dbController = SqlController.CreateSqlController(this); 
     }
     //-------------------------------------------------------------------------
     public ISqlView GetSqlView()
@@ -84,7 +84,7 @@ namespace Sources
     //-------------------------------------------------------------------------
     public override List<string> GetCheckFields()
     {
-      if (Fields.Count == 0) // поля источника БД появляются только после запуска запроса из ISqlView или из сверки
+      if (Fields.Count == 0) // fields are filled only after start process in SqlController
         throw new Exception(Parent.Name + ": no fields found. Run query to get!");
       return Fields;
     }
@@ -94,8 +94,10 @@ namespace Sources
       base.GetData(c, a);
       if (c != null && c.OnProgress != null)
         c.OnProgress(0, "execute...");
-      dbController.GetData(SQL, context); // запуск процесса начитки данных в SqlController-е, обработчики хода, окончания и ошибки заданы в context
-      // заполнение SourceContent.DT происходит в базовом GetDataEnd(), который вызывается при успешном окончании запущенного процесса
+      // start getting data process in SqlController, which gets this object as ISqlModel
+      dbController.GetData(SQL, context); 
+      // Parent.DT fills in SourceContent.GetDataEnd(), which is passed in context.OnFinish 
+      // and executes after process successfully completed
     }
     //-------------------------------------------------------------------------
     public override void GetDataStop()

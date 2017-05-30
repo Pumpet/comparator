@@ -4,12 +4,12 @@ using System.Security.Cryptography;
 
 namespace Common
 {
-  /* суперсекретные действия для хранения паролей, строк подключения и т.п. */
+  /* Encrypt-decrypt string */
   public class EncrDecr
   {
     AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
-    byte[] aesKey = new byte[32]; // вот тут можно что-то уникальное задавать-менять если нужна супербезопасность
-    byte[] aesIV = new byte[16];  // и тут
+    byte[] aesKey = new byte[32]; 
+    byte[] aesIV = new byte[16];  
     //-------------------------------------------------------------------------
     public EncrDecr(string strKey, string strIV)
     {

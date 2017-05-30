@@ -1,4 +1,20 @@
-﻿using System;
+﻿//
+//  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+//  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+//  PURPOSE.
+//
+//  License: GNU Lesser General Public License (LGPLv3)
+//
+//  Email: pumpet.net@gmail.com
+//  Git: https://github.com/Pumpet/comparator
+//  Copyright (C) Alex Rozanov, 2016 
+//
+// Special thanks to Pavel Torgashov for his excellent FastColoredTextBox component!
+// https://github.com/PavelTorgashov/FastColoredTextBox
+//
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -12,13 +28,13 @@ namespace SqlSource
   {
     BindingSource bs = new BindingSource();
     BindingSource bsFields = new BindingSource();
-    Func<BindingSource, Array> bsFieldsList = (b) => { return b.OfType<string>().Select(x => new { Value = x }).ToArray(); }; // для выдачи из List<string> в грид
+    Func<BindingSource, Array> bsFieldsList = (b) => { return b.OfType<string>().Select(x => new { Value = x }).ToArray(); }; // get from List<string> to grid
     SynchronizationContext sync { get; set; }
     Dictionary<string, string> propNames;
-    bool inProc; // признак активного процесса начитки
+    bool inProc; // true if query is executed
     string currSQL = "";
-    const int maxClipCells = 100000; // максимальное кол-во ячеек грида в буфер обмена
-    const int maxExcelRows = 100000; // максимальное кол-во строк грида в эксель
+    const int maxClipCells = 100000; // max grid cells to clipboard
+    const int maxExcelRows = 100000; // max grid rows for excel
     //~~~~~~~~ ISqlView Members ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #region
     //-------------------------------------------------------------------------
@@ -26,13 +42,13 @@ namespace SqlSource
     public event Action<string, TaskContext> GetData;
     public event Action StopGetData;
     //-------------------------------------------------------------------------
-    /* установка имен полей объектов с данными для последующей привязки в SetBindings() */
+    /* Set data object property names for use in binding */
     public void SetDataProps(Dictionary<string, string> names)
     {
       propNames = names ?? new Dictionary<string, string>();
     }
     //-------------------------------------------------------------------------
-    /* прием объектов с данными в соответствующие DataSources и необходимые обновления контролов */
+    /* Set data objects in BindingSources */
     public void SetData(object inData, object providers, object fields)
     {
       if (inData != null) bs.DataSource = inData;
@@ -46,14 +62,14 @@ namespace SqlSource
     public SqlView()
     {
       InitializeComponent();
-      // порядок перехода по контролам
       SetTabs(splitH, splitH.Panel2, splitH.Panel1, splitV, pTop, txtSQL,
         pTabs, tabs, tabResult, tabFields, dgResult, dgFields,
         pSource, tpSource, cbProvider, tbServer, tbDB, tbLogin, tbPwd, tbConnStr, bTestConn,
         pCommandTimeout, numCommandTimeout);
     }
     //-------------------------------------------------------------------------
-    void SetTabs(params Control[] x) // установка таб-стопов на указанные контролы в указанном порядке
+    /* Set tab orders in order of parameters */
+    void SetTabs(params Control[] x) 
     {
       Action<Control> CancelTabs = null;
       CancelTabs = (c) =>
@@ -66,7 +82,7 @@ namespace SqlSource
         }
       };
 
-      CancelTabs(this); // снять все таб-стопы
+      CancelTabs(this); 
 
       for (int i = 0; i < x.Length; i++)
       {
@@ -85,7 +101,7 @@ namespace SqlSource
       SetBindings();
     }
     //-------------------------------------------------------------------------
-    public static void SetDoubleBuffered(Control control, bool setting) // чтобы грид не мерцал
+    public static void SetDoubleBuffered(Control control, bool setting) // prevent blinking
     {
       System.Reflection.BindingFlags bFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
       control.GetType().GetProperty("DoubleBuffered", bFlags).SetValue(control, setting, null);
@@ -142,7 +158,7 @@ namespace SqlSource
     //-------------------------------------------------------------------------
     private void dgResult_KeyDown(object sender, KeyEventArgs e)
     {
-      if (e.Control && e.KeyCode == Keys.C && dgResult.SelectedCells.Count > maxClipCells) // чтобы не подвисал на копировании больших объемов
+      if (e.Control && e.KeyCode == Keys.C && dgResult.SelectedCells.Count > maxClipCells) 
       {
         MessageBox.Show(string.Format("Sorry, we offer only {0} cells in Clipboard", maxClipCells), "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         DataGridViewSelectedCellCollection sc = dgResult.SelectedCells;
@@ -156,7 +172,7 @@ namespace SqlSource
     //-------------------------------------------------------------------------
     private void txtSQL_KeyDown(object sender, KeyEventArgs e)
     {
-      if (e.Control && e.KeyCode == Keys.Tab) // чтобы выйти клавишами из грида
+      if (e.Control && e.KeyCode == Keys.Tab)
       {
         if (e.Shift)
           tbServer.Focus();
@@ -213,7 +229,7 @@ namespace SqlSource
       EndEdit();
       tabs.SelectTab(tabResult);
       dgResult.DataSource = null;
-      if (GetData != null) // запуск процесса получения данных
+      if (GetData != null) // start getting data process in controller
       {
         lblStatus.Text = "Executing query...";
         GetData(currSQL,
@@ -226,7 +242,7 @@ namespace SqlSource
       if (StopGetData != null)
       {
         lblStatus.Text = "Cancelling query...";
-        StopGetData();
+        StopGetData(); // stop getting data process in controller
       }
     }
     //-------------------------------------------------------------------------
@@ -235,7 +251,6 @@ namespace SqlSource
       try
       {
         ExcelProc.GridToExcel(tabs.SelectedTab == tabResult ? dgResult : dgFields, maxExcelRows);
-        //GridToExcel(tabs.SelectedTab == tabResult ? dgResult : dgFields, maxExcelRows);
       }
       catch (Exception ex)
       {
@@ -279,7 +294,7 @@ namespace SqlSource
     //-------------------------------------------------------------------------
     void TaskProgress(int step, string msg)
     {
-      Func<int> Step = () => // химия с прогрессом, чтобы постепенно замедлялся, т.к. мы не знаем максимума
+      Func<int> Step = () => // calculate step, gradually slowing...
       {
         int d = 1000;
         int min = d * 100;

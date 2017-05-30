@@ -3,6 +3,7 @@ using System.Windows.Forms;
 
 namespace Common
 {
+  /* Simple form for data table */
   public partial class FormFlatData : Form
   {
     BindingSource bs = new BindingSource();

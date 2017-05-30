@@ -5,9 +5,10 @@ using System.Threading;
 namespace Common
 {
   //===========================================================================
-  /* общие процедуры */
+  /* Common functions */
   public static class CommonProc
   {
+    // Get path from relative path
     public static string GetFilePath(string fileName)
     {
       return string.IsNullOrEmpty(fileName) ? fileName :
@@ -15,18 +16,18 @@ namespace Common
     }
   }
   //===========================================================================
-  /* контекст выполнения процесса */
+  /* Process execution context */
   public class TaskContext
   {
-    public bool Cancel { get; set; } // признак прерывания
-    public Exception Error { get; set; } // ошибка процесса
-    public SynchronizationContext ViewContext { get; set; } // контекст синхронизации внешнего вью для выполнения методов отображения хода процесса
-    public Action<int, string> OnProgress { get; set; } // отображение хода процесса (счетчик и сообщение)
-    public Action<object, string> OnFinish { get; set; } // по завершении процесса (объект с данными и сообщение)
-    public Action<string, Exception> OnError { get; set; } // при ошибке в процессе (сообщение и ошибка)
+    public bool Cancel { get; set; } // interrupt flag
+    public Exception Error { get; set; } // happened exception
+    public SynchronizationContext ViewContext { get; set; } // synchronization context for displaying progress
+    public Action<int, string> OnProgress { get; set; } // progress handler (counter, message)
+    public Action<object, string> OnFinish { get; set; } // finish handler (data object, message)
+    public Action<string, Exception> OnError { get; set; } // error handler (message, exception)
   }
   //===========================================================================
-  /* интерфейс обработки ошибок и сообщений*/
+  /* Error and message handling interface */
   public interface ILoger
   {
     void Error(string mess, object objErr);

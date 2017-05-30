@@ -10,6 +10,7 @@ using Common;
 
 namespace Sources
 {
+  /* Widgets for different data sources */
   public partial class SourcePanel : UserControl, IViewSource
   {
     //--- IViewSource members
@@ -17,7 +18,7 @@ namespace Sources
     public ISqlView SqlView { get; set; }
     public event Func<string, object, object> Command;
     //--- For excel operations
-    List<Tuple<string, string>> openedBooks = new List<Tuple<string, string>>(); // имя книги, путь
+    List<Tuple<string, string>> openedBooks = new List<Tuple<string, string>>(); // workbook name, path
     SynchronizationContext sync;
     [DllImport("user32.dll")]
     static extern bool IsWindow(IntPtr hWnd);
@@ -165,7 +166,7 @@ namespace Sources
       ddbOpened.ShowDropDown();
     }
     //-------------------------------------------------------------------------
-    /* список открытых */
+    /* List of opened workbooks */
     public void ddbOpened_DropDownOpening(object sender, EventArgs e)
     {
       openedBooks.Clear();
@@ -190,7 +191,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* выбор из файла */
+    /* Get workbook from file */
     private void SelectExcelFromFile(object sender, EventArgs e)
     {
       if (Command == null || !(bool)Command("SelectFileExcel", null))
@@ -215,7 +216,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* выбор из списка открытых */
+    /* Get workbook from opened workbook  */
     private void ddbOpened_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
     {
       int idx = ddbOpened.DropDownItems.IndexOf(e.ClickedItem) - 2;
@@ -240,7 +241,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* открыть-активировать */
+    /* Open workbook */
     private void bOpenXls_Click(object sender, EventArgs e)
     {
       if (string.IsNullOrEmpty(tbNameXls.Text)) return;
@@ -259,7 +260,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* смена листа */
+    /* Change sheet */
     private void cboxSheets_SelectedIndexChanged(object sender, EventArgs e)
     {
       if (!canConnectToSheet) return;
@@ -279,7 +280,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* листы книги в список */
+    /* Fill sheets for opened workbook */
     void FillSheetsList(Excel.Workbook wb)
     {
       if (wb != null && Command != null)
@@ -298,7 +299,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* показать выбранную книгу */
+    /* Show selected workbook */
     void ShowWorkbook(Excel.Workbook wb)
     {
       if (wb != null)
@@ -312,7 +313,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* обработка выделения области на листе */
+    /* Handle change selection in sheet */
     void SheetSelectionChange(Excel.Range Target)
     {
       sync.Send(SetAddress, Target.Areas[1].get_Address(false, false, Excel.XlReferenceStyle.xlA1, false, false));

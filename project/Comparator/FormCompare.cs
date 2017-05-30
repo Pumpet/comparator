@@ -5,6 +5,7 @@ using Common;
 
 namespace Comparator
 {
+  /* Form for control getting data and comparison processes */
   public partial class FormCompare : Form
   {
     bool inProc;
@@ -27,7 +28,7 @@ namespace Comparator
       if (Start != null)
       {
         inProc = true;
-        // запуск процессов с передачей в контексте методов отклика
+        // start processes
         Start(new TaskContext() { ViewContext = sync, OnProgress = ProgressA, OnFinish = null, OnError = null },
           new TaskContext() { ViewContext = sync, OnProgress = ProgressB, OnFinish = null, OnError = null },
           new TaskContext() { ViewContext = sync, OnProgress = ProgressCompare, OnFinish = Finish, OnError = null }
@@ -59,12 +60,12 @@ namespace Comparator
     //-------------------------------------------------------------------------
     void ProgressCompare(int step, string msg)
     {
-      StepProgress(pbarCompare, lblCompare, step, 100, msg); // step идет как процент, т.к. знаем количество сверяемого
+      StepProgress(pbarCompare, lblCompare, step, 100, msg); // step value in percent
     }
     //-------------------------------------------------------------------------
     void StepProgress(ProgressBar pBar, Label lbl, int step, int max, string msg)
     {
-      Func<double, int> Step = brake => // вычисление шага с замедлением - химия, если неизвестен максимум
+      Func<double, int> Step = brake => // calculate step, gradually slowing...
       {
         int d = 1000;
         int min = d*100;
@@ -79,7 +80,7 @@ namespace Comparator
         return step;
       };
       if (max > 0) pBar.Maximum = max;
-      if (step < int.MaxValue) // если передали максимум - просто отражаем шаг, если нет или шаг его превышает - вычисляем шаг
+      if (step < int.MaxValue) // calculate step value if maximum is unknown or less than current step
         pBar.Value = max > 0 && step <= max ? step : Step(4);
       else
         pBar.Value = pBar.Maximum;
@@ -87,7 +88,7 @@ namespace Comparator
       Refresh();
     }
     //-------------------------------------------------------------------------
-    void Finish(object res, string msg) // подвешиваем или закрываем окно (msg не используем, но нужно, т.к. используем как делегат)
+    void Finish(object res, string msg) 
     {
       inProc = false;
       if ((bool)res)
@@ -100,7 +101,7 @@ namespace Comparator
         bStop.Text = "Close";
     }
     //-------------------------------------------------------------------------
-    public void WaitState(bool on, string msg) // из родителя когда ждем формирования результата
+    public void WaitState(bool on, string msg) 
     {
       lblWait.Text = msg;
       bStop.Enabled = !on;

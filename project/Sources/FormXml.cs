@@ -1,4 +1,20 @@
-﻿using System;
+﻿//
+//  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+//  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+//  PURPOSE.
+//
+//  License: GNU Lesser General Public License (LGPLv3)
+//
+//  Email: pumpet.net@gmail.com
+//  Git: https://github.com/Pumpet/comparator
+//  Copyright (C) Alex Rozanov, 2016 
+//
+// Special thanks to Pavel Torgashov for his excellent FastColoredTextBox component!
+// https://github.com/PavelTorgashov/FastColoredTextBox
+//
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -10,8 +26,8 @@ namespace Sources
 {
   public partial class FormXml : Form
   {
-    const int ROWS_TO_XLS = 100000; // максимальное кол-во строк грида в эксель
-    const int MAX_XMLBYTES_FOR_COLOR = 256000; // макс.размер байт xml, который сможем подсветить без тормозов
+    const int ROWS_TO_XLS = 100000; // max rows from grid to excel
+    const int MAX_XMLBYTES_FOR_COLOR = 256000; //  max size of bytes xml, which we can highlight without brakes
     string appPath = AppDomain.CurrentDomain.BaseDirectory;
     BindingSource bs = new BindingSource();
     BindingSource bsFields = new BindingSource();
@@ -36,7 +52,7 @@ namespace Sources
       SetBindings();
       rbXslt_CheckedChanged(null, null);
       cbUseFieldsMap_CheckedChanged(null, null);
-      tbNameXml.Select(); // тут Focus() для TextBox не работает
+      tbNameXml.Select();
       tbNameXml.ScrollToCaret();
     }
     //-------------------------------------------------------------------------
@@ -47,7 +63,7 @@ namespace Sources
         bs.EndEdit();
         bsFields.EndEdit();
         tbResult.Clear();
-        tbResult.ClearUndo(); // если так не делать - будет утекать память при смене xml
+        tbResult.ClearUndo(); // for prevent memory leak
         dgResult.DataSource = null;
         XmlController.Dt = null;
         XmlController.Fields = null;
@@ -71,8 +87,8 @@ namespace Sources
       dgFields.Columns["colFieldName"].DataPropertyName = "FieldName";
       dgFields.Columns["colPath"].DataPropertyName = "Path";
       dgFields.Columns["colDefault"].DataPropertyName = "Default";
-      
-      // порядок важен! элементы с событиями - в конце 
+
+      // order is important! elements with events - at the end
       rbXsltNotUse.DataBindings.Add("Checked", bs, "XsltNone");
       rbXsltScript.DataBindings.Add("Checked", bs, "XsltFromScript");
       rbXsltFile.DataBindings.Add("Checked", bs, "XsltFromFile");
@@ -82,7 +98,7 @@ namespace Sources
       cbFromAttrib.DataBindings.Add("Checked", bs, "DataFromAttr", true, DataSourceUpdateMode.OnPropertyChanged);
     }
     //-------------------------------------------------------------------------
-    void SetDoubleBuffered(Control control, bool setting) // чтобы грид не мерцал
+    void SetDoubleBuffered(Control control, bool setting) // for prevent grid blinking
     {
       System.Reflection.BindingFlags bFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
       control.GetType().GetProperty("DoubleBuffered", bFlags).SetValue(control, setting, null);

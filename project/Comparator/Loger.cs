@@ -11,9 +11,9 @@ namespace Comparator
     public void Error(string mess, object objErr = null)
     {
       Log.Write(mess, objErr, true);
-      Console.WriteLine("-----------"); //test
-      Console.WriteLine("Press any key to exit..."); //test
-      Console.ReadKey(true); //test
+      //Console.WriteLine("-----------"); //test
+      //Console.WriteLine("Press any key to exit..."); //test
+      //Console.ReadKey(true); //test
       Environment.Exit(1);
     }
     //-------------------------------------------------------------------------

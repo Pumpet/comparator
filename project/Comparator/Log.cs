@@ -9,16 +9,17 @@ namespace Comparator
     private static object sync = new object();
     private static string fileName;
     //-------------------------------------------------------------------------
+    /* Will be created with application path and application name + .log */
     static Log()
     {
       fileName = Path.ChangeExtension(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppDomain.CurrentDomain.FriendlyName), "log");
     }
     //-------------------------------------------------------------------------
-    /* Начать/продолжить лог */
+    /* Log start or continue */
     public static void Start(bool rewrite) { Start(rewrite, null, null); }
-    /* Начать/продолжить лог + начальный текст */
+    /* + start text */
     public static void Start(bool rewrite, string text) { Start(rewrite, text, null); }
-    /* Начать/продолжить лог + начальный текст + указанный файл для записи */
+    /* + specific log file name */
     public static void Start(bool rewrite, string text, string file)
     {
       if (string.IsNullOrEmpty(file)) file = fileName;
@@ -34,9 +35,8 @@ namespace Comparator
         Write(text, false);
     }
     //-------------------------------------------------------------------------
-    /* Записать ошибку(исключение) в лог */
+    /* Write error */
     public static void Write(string text, object ex) { Write(text, ex, false); }
-    /* Записать ошибку(исключение) в лог + продублировать на консоль */
     public static void Write(string text, object ex, bool echo)
     {
       if (ex == null)
@@ -50,9 +50,8 @@ namespace Comparator
       }
       Write(text, echo);
     }
-    /* Записать текст в лог */
+    /* Write message */
     public static void Write(string text) { Write(text, false); }
-    /* Записать текст в лог + продублировать на консоль */
     public static void Write(string text, bool echo)
     {
       if (echo)

@@ -5,9 +5,10 @@ using System.Xml.Serialization;
 
 namespace Common
 {
-  /* сериализация в xml */
+  /* XML-serialization procedures */
   public static class Loader
   {
+    /* Load from XML-file to object */
     public static T Load<T>(string file) where T : class
     {
       T obj;
@@ -28,6 +29,7 @@ namespace Common
       return obj;
     }
     //-------------------------------------------------------------------------
+    /* Save from object XML-file */
     public static void Save<T>(string file, T obj) where T : class
     {
       if (obj == null)

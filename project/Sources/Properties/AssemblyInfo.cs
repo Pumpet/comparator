@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Sources")]
 [assembly: AssemblyDescription("Library for sources data models")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("free")]
+[assembly: AssemblyCompany("Pumpet")]
 [assembly: AssemblyProduct("Sources")]
-[assembly: AssemblyCopyright("free (special thanks to Pavel Torgashov for FastColorerTextBox component (LGPLv3))")]
+[assembly: AssemblyCopyright("GNU Lesser General Public License (LGPLv3)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -9,12 +9,12 @@ using System.Xml.Serialization;
 namespace Common
 {
   //===========================================================================
-  /* файл настроек */
+  /* Application configuration */
   public class Config
   {
     static Config config;
     string file;
-    public List<Options> optionsList = new List<Options>(); // настройки по хостам
+    public List<Options> optionsList = new List<Options>(); // list for hosts options
     //-------------------------------------------------------------------------
     public void Init(string f)
     {
@@ -28,7 +28,7 @@ namespace Common
     }
   }
   //===========================================================================
-  /* настройки для хоста, запустившего приложение */
+  /* Configuration for current host */
   public class Options
   {
     [XmlIgnore]
@@ -36,12 +36,12 @@ namespace Common
     [XmlAttribute]
     public string Host = Dns.GetHostName();
     [XmlArrayItem("file")]
-    public List<string> RecentFiles = new List<string>(); // список последних профилей
-    public string ProfileFolder = ""; // каталог для профилей
-    public string ResultFolder = ""; // каталог для результатов
-    public string LogFile = ""; // лог пакетного режима
-    public string HtmlStylesFile = ""; // css для результата в html
-    public string PatternFile = ""; // профиль-шаблон для нового профиля
+    public List<string> RecentFiles = new List<string>(); // last profiles
+    public string ProfileFolder = ""; // folder for profiles
+    public string ResultFolder = ""; // folder for comparison results
+    public string LogFile = ""; // log file for batch-mode
+    public string HtmlStylesFile = ""; // styles for html-result
+    public string PatternFile = ""; // default profile for new profile
     public MailParams SendOptions;
     //-------------------------------------------------------------------------
     public static Options Create(bool batch)

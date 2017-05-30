@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("DSComparer")]
 [assembly: AssemblyDescription("Library for DataTables compare")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("free")]
+[assembly: AssemblyCompany("Pumpet")]
 [assembly: AssemblyProduct("DSComparer")]
-[assembly: AssemblyCopyright("free")]
+[assembly: AssemblyCopyright("GNU Lesser General Public License (LGPLv3)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

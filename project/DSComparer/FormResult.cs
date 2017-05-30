@@ -21,12 +21,12 @@ namespace DataComparer
       try
       {
         Text = "Compare \"" + cmp.NameA + "\"(A) and \"" + cmp.NameB + "\"(B)";
-        // выдача доступных результатов
+        // Get available results
         resDiff.SetData(cmp, ResultType.rtDiff);
         if (cmp.DtIdent == null) tabs.TabPages.RemoveByKey("tabIdent"); else resIdent.SetData(cmp, ResultType.rtIdent);
         if (cmp.DtA == null) tabs.TabPages.RemoveByKey("tabA"); else resA.SetData(cmp, ResultType.rtA);
         if (cmp.DtB == null) tabs.TabPages.RemoveByKey("tabB"); else resB.SetData(cmp, ResultType.rtB);
-        // текущее положение и состояние окна - из статики, если есть
+
         if (DSComparer.FormRect.IsEmpty)
           StartPosition = FormStartPosition.CenterScreen;
         else
@@ -56,7 +56,7 @@ namespace DataComparer
     //-------------------------------------------------------------------------
     private void FormResult_KeyUp(object sender, KeyEventArgs e)
     {
-      // переключение между страницами
+      // Switch between tabs
       if (e.Modifiers == Keys.Control && e.KeyCode == Keys.Tab)
       {
         e.Handled = true;
@@ -79,7 +79,7 @@ namespace DataComparer
       }
     }
     //-------------------------------------------------------------------------
-    public void Close(bool need) // специально попросили закрыть
+    public void Close(bool need) 
     {
       needClose = need;
       Close();
@@ -87,14 +87,14 @@ namespace DataComparer
     //-------------------------------------------------------------------------
     private void FormResult_FormClosing(object sender, FormClosingEventArgs e)
     {
-      // в статике сохраняем текущее положение и состояние окна
+      // save current window position and states
       if (WindowState == FormWindowState.Normal)
       {
         DSComparer.FormRect.Location = Location;
         DSComparer.FormRect.Size = Size;
       }
       DSComparer.WinState = WindowState;
-      // скрываем, если не специально не попросили закрыть
+
       if (!needClose)
       {
         e.Cancel = true;
@@ -104,7 +104,7 @@ namespace DataComparer
     //-------------------------------------------------------------------------
     private void tabs_SelectedIndexChanged(object sender, EventArgs e)
     {
-      // фокус на грид на странице (чтобы не оставался на кнопке)
+      // focus from button to grid
       if (tabs.SelectedTab != null && tabs.SelectedTab.Controls.OfType<GridResult>().Any())
         tabs.SelectedTab.Controls.OfType<GridResult>().First().Focus();
     }

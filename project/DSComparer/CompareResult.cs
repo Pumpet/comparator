@@ -9,24 +9,25 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace DataComparer
 {
-  public class CompareResult : IDisposable // результат сверки
+  /* Comparison result */
+  public class CompareResult : IDisposable
   {
     FormResult formResult;
     string defaultFileName = "result.htm";
     string defaultStylesFileName = "styles.css";
-    public string NameA { get; private set; } // имя источника A
-    public string NameB { get; private set; } // имя источника B
-    public int RowsCntA { get; private set; } // строк в источнике A
-    public int RowsCntB { get; private set; } // строк в источнике B
-    public List<string>[] ColNames { get; private set; } // заголовки источников
-    public DataTable DtA { get; private set; } // данные только в источнике A
-    public DataTable DtB { get; private set; } // данные только в источнике B
-    public DataTable DtDiff { get; private set; } // данные расхождений (попарно, 0-й столбец - номер пары, 1-й столбец - номер внутри пары (0,1))
-    public DataTable DtIdent { get; private set; } // данные совпадений (попарно, 0-й столбец - номер пары, 1-й столбец - номер внутри пары (2,3))
-    public Dictionary<int, List<int>> Diffs  { get; private set; } // номера столбцов расхождений для каждой пары строк с расхождениями (ключ - номер пары из dtDiff) 
-    public List<int> KeyCols { get; private set; } // номера ключевых столбцов
-    public List<int> MatchCols { get; private set; } // номера столбцов, которые сравнивали
-    public Dictionary<int,int> RepeatRows { get; private set; } // номера повторяющихся строк (номер строки = номер пары в dtDiff|dtIdent + номер внутри пары)
+    public string NameA { get; private set; } // source name
+    public string NameB { get; private set; } 
+    public int RowsCntA { get; private set; } // rows count in source
+    public int RowsCntB { get; private set; } 
+    public List<string>[] ColNames { get; private set; } // columns names
+    public DataTable DtA { get; private set; } // data from source's rows that don't find pairs in other source
+    public DataTable DtB { get; private set; } // 
+    public DataTable DtDiff { get; private set; } // pairs with difference data, column #0 - pair number, column #1 - number inside pair (0 or 1)
+    public DataTable DtIdent { get; private set; } // pairs with identical data, column #0 - pair number, column #1 - number inside pair (2 or 3)
+    public Dictionary<int, List<int>> Diffs  { get; private set; } // numbers of columns with differences, key = pair number from dtDiff
+    public List<int> KeyCols { get; private set; } // numbers of key columns
+    public List<int> MatchCols { get; private set; } // numbers of comparison columns
+    public Dictionary<int, int> RepeatRows { get; private set; } // numbers of repeating rows, key = pair number from dtDiff/dtIdent * 10 + number inside pair)
     //-------------------------------------------------------------------------
     public CompareResult(string nameA, string nameB, int rowsCntA, int rowsCntB, List<string>[] colNames, 
       DataTable dtDiff, DataTable dtIdent, DataTable dtA, DataTable dtB,
@@ -221,7 +222,7 @@ namespace DataComparer
     //-------------------------------------------------------------------------
     StringBuilder CreateHtmlTable(ResultType rt, DataTable dt, string capt)
     {
-      int delta = rt == ResultType.rtDiff || rt == ResultType.rtIdent ? 2 : 0; // нужно учесть наличие служебных столбцов в начале таблиц парных данных
+      int delta = rt == ResultType.rtDiff || rt == ResultType.rtIdent ? 2 : 0; // DtDiff and DtIdent have two first no-data columns
       int colCnt = dt.Columns.Count;
       StringBuilder sb = new StringBuilder();
       sb.AppendLine("<tr><td class=h></tr>");

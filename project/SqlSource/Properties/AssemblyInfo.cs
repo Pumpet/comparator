@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("SqlSource")]
 [assembly: AssemblyDescription("Library for connect and query to sql source")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("free")]
+[assembly: AssemblyCompany("Pumpet")]
 [assembly: AssemblyProduct("SqlSource")]
-[assembly: AssemblyCopyright("free (special thanks to Pavel Torgashov for FastColorerTextBox component (LGPLv3))")]
+[assembly: AssemblyCopyright("GNU Lesser General Public License (LGPLv3)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -6,42 +6,47 @@ using Common;
 
 namespace Sources
 {
+  /* Base class for "Content"-classes that getting data from specific type sources */
   [XmlInclude(typeof(DbContent))]
   [XmlInclude(typeof(ExcelContent))]
   [XmlInclude(typeof(CsvContent))]
   [XmlInclude(typeof(XmlContent))]
-  public abstract class SourceContent // содержимое источника
+  public abstract class SourceContent 
   {
-    protected TaskContext context; // параметры получения данных, если получение - как процесс (например для DbContent)
-    protected Action<bool> afterGetData; // действие после получения данных
+    protected TaskContext context; // parameters for getting data process
+    protected Action<bool> afterGetData; // action after getting data
     [XmlIgnore]
-    public virtual Source Parent { get; set; } // источник
+    public virtual Source Parent { get; set; } // object that uses data in comparison
     [XmlArrayItem("field")]
-    public List<string> Fields { get; set; } // список наименований полей
+    public List<string> Fields { get; set; } // field names
     [XmlIgnore]
-    public virtual Exception Error { get { return context != null ? context.Error : null; } } // ошибка получения данных
+    public virtual Exception Error { get { return context != null ? context.Error : null; } } // last getting data exception
     //-------------------------------------------------------------------------
-    public virtual void Check() { } // проверка содержимого
+    /* check content */
+    public virtual void Check() { } 
     //-------------------------------------------------------------------------
-    public virtual List<string> GetCheckFields()  // проверка и выдача наименований полей
+    /* check and get fields */
+    public virtual List<string> GetCheckFields()  
     {
       return Fields;
     }
     //-------------------------------------------------------------------------
-    public virtual void GetData(TaskContext c, Action<bool> afterGetDataAction) // запуск получения данных
+    /* start getting data process */
+    public virtual void GetData(TaskContext c, Action<bool> afterGetDataAction) 
     {
-      afterGetData = afterGetDataAction; // что вызвать по окончании (штатно - конце GetDataEnd())
+      afterGetData = afterGetDataAction; 
       context = c ?? new TaskContext();
       context.Error = null;
       context.Cancel = false;
       if (context.OnFinish == null)
-        context.OnFinish = GetDataEnd; // куда вернуться в конце, если мы запустим как процесс
+        context.OnFinish = GetDataEnd; // end of process action
       Parent.InProc = true;
       Parent.DTClear();
       Parent.DT = null;
     }
     //-------------------------------------------------------------------------
-    public virtual void GetDataEnd(object result, string msg) // окончание получения данных
+    /* end of getting data process */
+    public virtual void GetDataEnd(object result, string msg)
     {
       bool fail = (context.Cancel || context.Error != null);
 
@@ -59,9 +64,11 @@ namespace Sources
         afterGetData(fail);
     }
     //-------------------------------------------------------------------------
-    public virtual void GetDataStop() { } // прервать получение данных (например если запущено как процесс)
+    /* stop getting data process */
+    public virtual void GetDataStop() { } 
     //-------------------------------------------------------------------------
-    public virtual void GetDataError(string msg, Exception ex) // принять ошибку получения данных из процесса
+    /* error of getting data process */
+    public virtual void GetDataError(string msg, Exception ex) 
     {
       context.Error = ex;
     }

@@ -8,22 +8,23 @@ using System.IO;
 
 namespace DataComparer
 {
-  public partial class GridResult : UserControl // отображение данных результата определенного типа
+  /* Grid for results of a certain type */
+  public partial class GridResult : UserControl
   {
     BindingSource bs = new BindingSource();
-    DataTable dt, dtf; // текущие данные - все (dt), фильтрованные (dtf)
-    ResultType rt; // тип результата (различия, совпадения, только в одном источнике (A или B))
-    CompareResult cmp; // объект результата
+    DataTable dt, dtf; // current data - all (dt) or filtered (dtf)
+    ResultType rt; 
+    CompareResult cmp; 
     Action<string, Exception> onError = (m, ex) => { MessageBox.Show(string.Format("{0}\n{1}", m, ex.Message), "", MessageBoxButtons.OK, MessageBoxIcon.Error); };
-    Keys pushKey = Keys.None; // нажатые упр.клавиши    
-    Dictionary<int, string> filteredCols = new Dictionary<int, string>(); // отфильтрованные столбцы
-    DataGridViewCell currCell; // ячейка с которой ушли искать
+    Keys pushKey = Keys.None; // pressed control keys
+    Dictionary<int, string> filteredCols = new Dictionary<int, string>(); // columns with filter
+    DataGridViewCell currCell; // current cell
     //-------------------------------------------------------------------------
-    bool reserveCell; // не сбрасывать currCell когда перемещаемся
-    bool rtPairs { get { return rt == ResultType.rtDiff || rt == ResultType.rtIdent; } } // это данные по парам (расхождения, совпадения)
-    bool rtDiff { get { return rt == ResultType.rtDiff; } } // это данные по расхождениям
-    int delta { get { return rtPairs ? 2 : 0; } } // нужно учесть наличие служебных столбцов в начале таблиц парных данных
-    DataTable data { get { return dtf ?? dt; } } // текущие данные
+    bool reserveCell; // don't reset current cell
+    bool rtPairs { get { return rt == ResultType.rtDiff || rt == ResultType.rtIdent; } } // true if data in pairs
+    bool rtDiff { get { return rt == ResultType.rtDiff; } } // true for differences 
+    int delta { get { return rtPairs ? 2 : 0; } } // table for pairs has two first no-data columns
+    DataTable data { get { return dtf ?? dt; } } // current data
     //-------------------------------------------------------------------------
     public GridResult()
     {
@@ -72,7 +73,7 @@ namespace DataComparer
       control.GetType().GetProperty("DoubleBuffered", bFlags).SetValue(control, setting, null);
     }
     //-------------------------------------------------------------------------
-    /* начальные установки грида */
+    /* initial grid settings */
     void PrepareGrid()
     {
       int fontSize = Convert.ToInt32(dgData.Font.Size);
@@ -86,23 +87,23 @@ namespace DataComparer
         if (rtPairs)
         {
           c.SortMode = DataGridViewColumnSortMode.NotSortable;
-          //if (c.Index < delta) { c.Frozen = true; c.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader; } //test - показать служебные столбцы
-          if (c.Index < delta) c.Visible = false; //work - скрыть служебные столбцы
+          //if (c.Index < delta) { c.Frozen = true; c.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader; } //test - show no-data columns
+          if (c.Index < delta) c.Visible = false; //work - hide no-data columns
         }
         if (!rtPairs && c.HeaderText == DSComparer.emptyColumnMark) c.Visible = false;
-        // столбцы с ключами
+        // columns with keys
         if (data.Columns.OfType<DataColumn>().Where(x => cmp.KeyCols.Contains(x.Ordinal - delta)).Select(y => y.ColumnName).Contains(c.Name))
         {
           c.HeaderCell.Style.ForeColor = Color.DarkBlue;
           c.HeaderCell.ToolTipText = "Key field";
         }
-        // столбцы для сравнения
+        // columns with compared data
         if (rtPairs && data.Columns.OfType<DataColumn>().Where(x => cmp.MatchCols.Contains(x.Ordinal - delta)).Select(y => y.ColumnName).Contains(c.Name))
         {
           c.HeaderCell.Style.ForeColor = Color.DarkGreen;
           c.HeaderCell.ToolTipText = "Matched";
         }
-        // столбцы с расхождениями
+        // columns with differences
         if (rtDiff && data.Columns.OfType<DataColumn>().Where(x => cmp.Diffs.Values.SelectMany(v => v).Distinct().Contains(x.Ordinal - delta)).Select(y => y.ColumnName).Contains(c.Name))
         {
           c.HeaderCell.Style.ForeColor = Color.DarkRed;
@@ -111,16 +112,16 @@ namespace DataComparer
       }
     }
     //-------------------------------------------------------------------------
-    /* раскраска строки */
+    /* Coloring row */
     void dgData_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
     {
       DataGridView grid = sender as DataGridView;
       if (grid != null)
       {
-        // подсветка пары
+        // highlight pair
         if (rtPairs)
           grid.Rows[e.RowIndex].DefaultCellStyle.BackColor = (int)grid[1, e.RowIndex].Value % 2 == 0 ? Color.White : Color.LightCyan;
-        // цвета ячеек с расхождениями
+        // highlight differencies
         if (rtDiff && cmp.Diffs.ContainsKey((int)grid[0, e.RowIndex].Value))
         {
           foreach (int c in cmp.Diffs[(int)grid[0, e.RowIndex].Value])
@@ -128,7 +129,7 @@ namespace DataComparer
             grid.Rows[e.RowIndex].Cells[data.Columns[c+delta].ColumnName].Style.ForeColor = Color.Red;
           }
         }
-        // признак повтора строки
+        // mark repeating row
         if (rtPairs && cmp.RepeatRows.ContainsKey((int)grid[0, e.RowIndex].Value * 10 + (int)grid[1, e.RowIndex].Value))
         {
           grid.Rows[e.RowIndex].HeaderCell.Style.ForeColor = Color.DarkRed;
@@ -144,7 +145,7 @@ namespace DataComparer
       SetCounter();
     }
     //-------------------------------------------------------------------------
-    protected override void Dispose(bool disposing) // get from designer
+    protected override void Dispose(bool disposing) // I got it from designer
     {
       if (disposing && (components != null))
         components.Dispose();
@@ -161,7 +162,7 @@ namespace DataComparer
     void dgData_KeyUp(object sender, KeyEventArgs e)
     {
       pushKey = Keys.None;
-      if (e.KeyCode == Keys.End && dgData.CurrentCell != null) // исправление баги с отсутствием перехода в конец строки после изменения ширины столбцов
+      if (e.KeyCode == Keys.End && dgData.CurrentCell != null) // fix bug - no transition at the end of row after changing column width
         dgData.FirstDisplayedCell = dgData[dgData.CurrentCell.ColumnIndex, dgData.FirstDisplayedScrollingRowIndex];
     }
     void dgData_KeyDown(object sender, KeyEventArgs e)
@@ -243,7 +244,7 @@ namespace DataComparer
       GoRepeated(pushKey);
     }
     //-------------------------------------------------------------------------
-    /* поиск */
+    /* Search */
     void Find(Keys key)
     {
       if (string.IsNullOrEmpty(tbFind.Text)) return;
@@ -263,7 +264,7 @@ namespace DataComparer
       MoveCell(fwd, false, alt, false, fn);
     }
     //-------------------------------------------------------------------------
-    /* фильтр текущего столбца */
+    /* Filter current column */
     void Filter(Keys key)
     {
       if (string.IsNullOrEmpty(tbFind.Text)) return;
@@ -275,7 +276,7 @@ namespace DataComparer
 
         int c = dgData.CurrentCell.ColumnIndex;
         string colName = dgData.Columns[c].DataPropertyName;
-        DataTable dtTmp = dt.Clone(); // для отфильтрованных строк
+        DataTable dtTmp = dt.Clone(); // table for filtered rows
 
         data.Rows.OfType<DataRow>()
           .Where(x => x[colName] is string
@@ -285,10 +286,10 @@ namespace DataComparer
         
         if (rtPairs)
         {
-          data.Rows.OfType<DataRow>()  // добавление парных строк в отфильтрованный набор...
+          data.Rows.OfType<DataRow>()  // adding paired rows to a filtered set...
             .Where(x => dtTmp.Rows.Contains(new[] { x[0], -1 * ((int)x[1]%2 - 1) + (rtDiff ? 0 : 2)}) && !dtTmp.Rows.Contains(new[] { x[0], x[1] }))
             .CopyToDataTable(dtTmp, LoadOption.PreserveChanges);
-          dtTmp.DefaultView.Sort = dtTmp.Columns[0].ColumnName + ", " + dtTmp.Columns[1].ColumnName; //... и сортировка по парам
+          dtTmp.DefaultView.Sort = dtTmp.Columns[0].ColumnName + ", " + dtTmp.Columns[1].ColumnName; //... and sort in pairs
         }
         
         dtf = dtTmp;
@@ -307,7 +308,7 @@ namespace DataComparer
       }
     }
     //-------------------------------------------------------------------------
-    /* сброс фильтров всех столбцов */
+    /* Reset all filters */
     void FilterCancel()
     {
       try
@@ -330,7 +331,7 @@ namespace DataComparer
       }
     }
     //-------------------------------------------------------------------------
-    /* переход к следующему расхождению */
+    /* Move to next difference */
     void GoDiff(Keys key)
     {
       if (!rtDiff) return;
@@ -342,8 +343,8 @@ namespace DataComparer
       Func<int, int, List<int>> fn = (r, c) =>
       {
         List<int> cn = null;
-        int p = (int)dgData[0, r].Value; // пара
-        if (cmp.Diffs.ContainsKey(p) && cmp.Diffs[p] != null) // есть список различий для этой пары
+        int p = (int)dgData[0, r].Value; // pair
+        if (cmp.Diffs.ContainsKey(p) && cmp.Diffs[p] != null) // there is a list of differences for this pair
         {
           cn = dgData.Columns.OfType<DataGridViewColumn>()
             .Where(x => (!alt ? (fwd ? x.Index > c : c > x.Index) : c == x.Index))
@@ -355,7 +356,7 @@ namespace DataComparer
       MoveCell(fwd, true, alt, false, fn);
     }
     //-------------------------------------------------------------------------
-    /* переход к ключу */
+    /* Move to key value */
     void GoKey(Keys key)
     {
       if ((key & Keys.Alt) == Keys.Alt || (key & Keys.Control) == Keys.Control) return;
@@ -384,7 +385,7 @@ namespace DataComparer
       }
     }
     //-------------------------------------------------------------------------
-    /* переход к следующему повтору */
+    /* Move to next repeating row */
     void GoRepeated(Keys key)
     {
       if (!rtPairs) return;
@@ -407,44 +408,45 @@ namespace DataComparer
       MoveCell(fwd, false, true, false, fn);
     }
     //-------------------------------------------------------------------------
-    /* перемещение в определенную ячейку из отобранных делегатом */
+    /* Moving to a specific cell from selected by delegate GetNextPosInRow */
     void MoveCell(bool fwd, bool throughRow, bool inCol, bool inRow, Func<int, int, List<int>> GetNextPosInRow)
     {
-      // fwd - двигаться вперед, inCol/inRow - двигаться в пределах текущего столбца/строки
-      // throughRow - прыгаем через строку для таблиц с парами
+      // fwd - move forward, inCol/inRow - move inside current column/row
+      // throughRow - jump over row for tables that contain pairs
       try
       {
         Cursor = Cursors.WaitCursor;
 
         if (inCol && inRow) return;
-        int step = (throughRow ? 2 : 1) * (fwd ? 1 : -1); // шаг по строкам
-        int row = dgData.CurrentRow.Index; // текущая строка
-        int r = row + (inCol ? step : 0), // стартовая строка
-          c = dgData.CurrentCell != null ? dgData.CurrentCell.OwningColumn.Index : delta; // стартовый столбец
+        int step = (throughRow ? 2 : 1) * (fwd ? 1 : -1); // step through the rows
+        int row = dgData.CurrentRow.Index; // current row
+        int r = row + (inCol ? step : 0), // start row
+          c = dgData.CurrentCell != null ? dgData.CurrentCell.OwningColumn.Index : delta; // start column
         bool start = true;
         List<int> cn = null;
 
-        while (start || (!inRow && (fwd ? r <= row : r >= row))) // если только начали или еще не пошли столбец по второму кругу
+        while (start || (!inRow && (fwd ? r <= row : r >= row))) // if you have not started the second round of column way
         {
-          if (fwd ? r >= dgData.RowCount : r < 0) // дошли до конца/начала столбца - начнем сначала/сконца столбца
+          if (fwd ? r >= dgData.RowCount : r < 0) // have reached the end/beginning of column - start first/end of column
           {
             r = fwd ? 0 : (dgData.RowCount - Math.Abs(step));
             start = false;
           }
           cn = null;
-          if (GetNextPosInRow != null) cn = GetNextPosInRow(r, c); // подходящие ячейки в этой строке
+          if (GetNextPosInRow != null) cn = GetNextPosInRow(r, c); // suitable cells in this row
           if (cn != null && cn.Count > 0) 
             break;
-          if (!inRow) //
-            r = r + step;
-          else if (c == (fwd ? delta - 1 : dgData.ColumnCount)) // строка пошла еще раз сначала/сконца
+          if (!inRow) 
+            r = r + step; // next row
+          else if (c == (fwd ? delta - 1 : dgData.ColumnCount)) // start the second round of row way
             start = false;
-          if (!inCol) c = fwd ? delta-1 : dgData.ColumnCount; // строку - сначала/сконца
+          if (!inCol) 
+            c = fwd ? delta-1 : dgData.ColumnCount; // start column of row
         }
 
-        if (cn != null && cn.Count > 0) // есть подходящие ячейки в строке r
+        if (cn != null && cn.Count > 0) // have suitable cells in row r
         {
-          c = (fwd ? cn.Min() : cn.Max()); // нужная с учетом направления
+          c = (fwd ? cn.Min() : cn.Max()); // suitable cell in row by according direction
           SetCurrentCell(c, r);
         }
       }
@@ -463,7 +465,7 @@ namespace DataComparer
     {
       if (cell == null) return;
       dgData.CurrentCell = cell;
-      if (!dgData.CurrentCell.Displayed) // чтобы грид не съезжал по вертикали
+      if (!dgData.CurrentCell.Displayed) 
         dgData.FirstDisplayedCell = dgData[dgData.CurrentCell.ColumnIndex, dgData.FirstDisplayedScrollingRowIndex];
       dgData.Focus();
       SetCounter();

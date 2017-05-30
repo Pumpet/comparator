@@ -7,17 +7,18 @@ using Sources;
 
 namespace Comparator
 {
-  public enum ViewResultType { Excel, HTML } // варианты выдачи/просмотра результата
+  public enum ViewResultType { Excel, HTML } 
   public enum MailResult { Attachment, GZIP, Text, Link}
   //===========================================================================
+  /* Profile - describes comparison rules, sourses and its field pairs */
   public class Profile : IDisposable
   {
     [XmlIgnore]
-    public bool needSave { get; set; } // были изменения
+    public bool needSave { get; set; } // has unsaved changes
     [XmlIgnore]
-    public string Filepath { get; set; }
+    public string Filepath { get; set; } // path to saved(serialized) file
     [XmlIgnore]
-    public string ProfileName // имя файла профиля
+    public string ProfileName 
     {
       get
       {
@@ -28,7 +29,7 @@ namespace Comparator
       }
     }
     [XmlIgnore]
-    public string ViewCaption // заголовок для вью
+    public string ViewCaption // header for view
     {
       get
       {
@@ -38,44 +39,51 @@ namespace Comparator
           return Path.GetFileNameWithoutExtension(Filepath) + (needSave ? "*" : "");
       }
     }
-    bool diffOnly = true;
+
+    // comparison options and rules:
+    bool diffOnly = true; // get only differences in comparison result
     public bool DiffOnly { get { return diffOnly; } set { diffOnly = value; } }
-    bool onlyA = true;
+    bool onlyA = true; // get not matched records of source A in comparison result
     public bool OnlyA { get { return onlyA; } set { onlyA = value; } }
-    bool onlyB = true;
+    bool onlyB = true; // get not matched records of source B in comparison result
     public bool OnlyB { get { return onlyB; } set { onlyB = value; } }
-    public bool MatchInOrder { get; set; }
-    public bool MatchAllPairs { get; set; }
+    public bool MatchInOrder { get; set; } // match records in order, not by keys
+    public bool MatchAllPairs { get; set; } // match all fields
     public bool CheckRepeats { get; set; }
     public bool TryConvert { get; set; }
     public bool NullAsStr { get; set; }
     public bool CaseSens { get; set; }
-    public bool Send { get; set; } // будем отправлять (пакетный режим)
-    public string SendTo { get; set; } // (пакетный режим если Send = true)
-    ViewResultType resType = ViewResultType.Excel; // тип результата (пакетный режим)
+
+    // options for batch-mode:
+    public bool Send { get; set; } // send mail
+    public string SendTo { get; set; } // recipients
+    public string Subject { get; set; } // subject
+    ViewResultType resType = ViewResultType.Excel; // type of result file
     public ViewResultType ResType { get { return resType; } set { resType = value; } }
-    public string ResFolder { get; set; } // путь для результата (пакетный режим)
-    public string ResFile { get; set; }   // имя файла результата (пакетный режим)
-    public bool TimeInResFile { get; set; }   // в имя файла результата включать текущие дату-время (пакетный режим)
-    MailResult resMail = MailResult.Attachment; // результат в письме (пакетный режим если Send = true)
+    public string ResFolder { get; set; } // path for result file
+    public string ResFile { get; set; }   // result file name
+    public bool TimeInResFile { get; set; }   // include timestamp in result file name 
+    MailResult resMail = MailResult.Attachment; // way to send result in mail
     public MailResult ResMail { get { return resMail; } set { resMail = value; } }
-    public string Subject { get; set; } // тема письма (пакетный режим если Send = true)
     [XmlIgnore]
     public bool ResExcel { get { return ResType == ViewResultType.Excel; } set { if (value) ResType = ViewResultType.Excel; } }
     [XmlIgnore]
     public bool ResHTML { get { return ResType == ViewResultType.HTML; } set { if (value) ResType = ViewResultType.HTML; } }
+
     Source srcA = new Source() { InnerName = "SourceA" };
-    public Source SrcA // источник A
+    public Source SrcA // object for source A
     {
       get { return srcA; }
       set { srcA = value; srcA.InnerName = "SourceA"; }
     }
     Source srcB = new Source() { InnerName = "SourceB" };
-    public Source SrcB // источник B
+    public Source SrcB // object for source B
     {
       get { return srcB; }
       set { srcB = value; srcB.InnerName = "SourceB"; }
     }
+
+    // field pairs
     List<ColPair> cols = new List<ColPair>();
     public List<ColPair> Cols
     {
@@ -83,7 +91,7 @@ namespace Comparator
       set { cols = value; }
     }
     //-------------------------------------------------------------------------
-    /* списки имен полей источников */
+    /* lists of source fields */
     public List<string>[] GetFields(bool check)
     {
       return new[] { 
@@ -91,7 +99,7 @@ namespace Comparator
         check ? SrcB.Content.GetCheckFields() : SrcB.Content.Fields };
     }
     //-------------------------------------------------------------------------
-    /* проверка готовности к сверке */
+    /* check ready for comparison */
     public void Check() 
     {
       if (Cols.Count == 0)
@@ -100,7 +108,7 @@ namespace Comparator
       SrcB.Check();
     }
     //-------------------------------------------------------------------------
-    /* проверка соответствия имен полей в парах и в источниках */
+    /* check difference between field names in pairs and in sources */
     public void CheckFieldPairs(bool loadFields)
     {
       List<string>[] flds = GetFields(loadFields);
@@ -108,14 +116,12 @@ namespace Comparator
         throw new Exception("Some of fields in pairs not exist in sources");
     }
     //-------------------------------------------------------------------------
-    /* подготовка профиля к записи или сверке */
+    /* prepare profile for save or for comparison */
     public void Prepare()
     {
       if (string.IsNullOrEmpty(SrcA.Name)) SrcA.Name = SrcA.InnerName;
       if (string.IsNullOrEmpty(SrcB.Name)) SrcB.Name = SrcB.InnerName;
-      // не д.б. пустых пар
       Cols.RemoveAll(x => { return (string.IsNullOrEmpty(x.ColA) && string.IsNullOrEmpty(x.ColB)); });
-      // одно из полей пустое - только для выдачи
       foreach (var pair in Cols.Where(x => { return (string.IsNullOrEmpty(x.ColA) || string.IsNullOrEmpty(x.ColB)); }))
       {
         pair.Key = false;
@@ -130,11 +136,11 @@ namespace Comparator
     }
   }
   //===========================================================================
-  /* пара полей */
+  /* field names pair */
   public class ColPair
   {
-    public bool Key { get; set; }
-    public bool Match { get; set; }
+    public bool Key { get; set; } // key fields - use for record matching
+    public bool Match { get; set; } // fields for comparision in matched records
     public string ColA { get; set; }
     public string ColB { get; set; }
   }

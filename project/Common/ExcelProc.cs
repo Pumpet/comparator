@@ -10,10 +10,11 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Common
 {
+  /* Excel procedures */
   public static class ExcelProc
   {
     //-------------------------------------------------------------------------
-    /* книга по имени и пути - из открытых или с диска */
+    /* Get Workbook from opened or from disk, by name and path */
     public static Excel.Workbook GetWorkbook(string name, string path, bool findOpened = true, bool visibleNew = true)
     {
       Excel.Workbook wb = null;
@@ -33,7 +34,7 @@ namespace Common
       return wb;
     }
     //-------------------------------------------------------------------------
-    /* открытая книга */
+    /* Get opened Workbook by name and path */
     public static Excel.Workbook GetOpenedWorkbook(string name, string path)
     {
       Excel.Workbook wb = null;
@@ -51,7 +52,7 @@ namespace Common
       return wb;
     }
     //-------------------------------------------------------------------------
-    /* лист книги по текущему имени */
+    /* Worksheet by name */
     public static Excel.Worksheet GetSheet(Excel.Workbook wb, string sheetName)
     {
       Excel.Worksheet ws = null;
@@ -61,7 +62,7 @@ namespace Common
       return ws;
     }
     //-------------------------------------------------------------------------
-    /* уборка ком, чтобы эксели не болтались в памяти */
+    /* Remove COM-objects from memory */
     public static void ReleaseCom<T>(T o) where T : class
     {
       ReleaseCom(ref o);
@@ -76,7 +77,7 @@ namespace Common
       }
     }
     //-------------------------------------------------------------------------
-    /* список книг (имя, путь) из окон живых процессов Excel */
+    /* List Workbooks (name, path) from opened Excel windows */
     public static List<Tuple<string, string>> GetOpenedXlsNames()
     {
       List<Tuple<string, string>> res = new List<Tuple<string, string>>();
@@ -93,7 +94,7 @@ namespace Common
       return res;
     }
     //-------------------------------------------------------------------------
-    /* список объектов книг из окон живых процессов Excel */
+    /* List Workbooks objects from opened Excel windows */
     public static List<Excel.Workbook> GetOpenedXls()
     {
       List<Excel.Workbook> wbooks = new List<Excel.Workbook>();
@@ -120,29 +121,29 @@ namespace Common
       }
       return wbooks;
     }
-    #region ---- вспомогательные процедуры для получения объектов из процессов
+    #region ---- helper procedures for getting from processes
 
-    // объект из окна
+    // Excel window from process window
     [DllImport("Oleacc.dll")]
     public static extern int AccessibleObjectFromWindow(
           int hwnd, uint dwObjectID, byte[] riid,
           ref Excel.Window ptr);
 
-    // для EnumChildProc
+    // delegate for EnumChildProc
     public delegate bool EnumChildCallback(int hwnd, ref int lParam);
 
-    // перечисление дочерних окон - остановка и возврат lParam - в EnumChildProc (передаваемой в lpEnumFunc)
+    // return desired child window from process window (from EnumChildProc)
     [DllImport("User32.dll")]
     public static extern bool EnumChildWindows(
           int hWndParent, EnumChildCallback lpEnumFunc,
           ref int lParam);
 
-    // имя класса окна
+    // get window class name
     [DllImport("User32.dll")]
     public static extern int GetClassName(
           int hWnd, StringBuilder lpClassName, int nMaxCount);
 
-    // функция обратного вызова для EnumChildWindows - анализирует дочернее окно, если эксель - останавливает перечисление
+    // callback function for EnumChildWindows - if it is Excel, stop enumeration and return hwnd
     public static bool EnumChildProc(int hwndChild, ref int lParam)
     {
       StringBuilder buf = new StringBuilder(128);
@@ -157,12 +158,12 @@ namespace Common
     #endregion 
   
     //-------------------------------------------------------------------------
-    /* выдача грида в эксель */
+    /* Export grid data to Excel */
     public static void GridToExcel(DataGridView dg, int maxRows = 0)
     {
       if (dg.ColumnCount == 0) return;
 
-      if (maxRows > 0 && dg.RowCount > maxRows) // ограничение, чтобы не подвешивать надолго
+      if (maxRows > 0 && dg.RowCount > maxRows) // to limit waiting
         MessageBox.Show(string.Format("Sorry, we offer only {0} rows in Excel", maxRows), "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
       else
         maxRows = dg.RowCount;

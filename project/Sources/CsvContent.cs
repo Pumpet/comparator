@@ -8,10 +8,10 @@ using Common;
 
 namespace Sources
 {
-  public class CsvContent : SourceContent  // содержимое источника CSV
+  public class CsvContent : SourceContent 
   {
     public string Filename { get; set; }
-    public bool FirstLineNames { get; set; } // получить имена полей из первой строки
+    public bool FirstLineNames { get; set; } // true if field names must be in the first string
     public string Delimiter { get; set; }
     public string Codepage { get; set; }
     //-------------------------------------------------------------------------
@@ -41,18 +41,20 @@ namespace Sources
       Check();
       if (c != null && c.OnProgress != null)
         c.OnProgress(0, "open file \"" + Path.GetFileName(Filename) + "\" ...");
-      LoadCsvData(); // вот тут получаем данные
-      GetDataEnd(null, string.Format("{0} rows", Parent.DT.Rows.Count)); // чисто для завершения
+      LoadCsvData(); 
+      GetDataEnd(null, string.Format("{0} rows", Parent.DT.Rows.Count)); 
     }
     //-------------------------------------------------------------------------
-    public void LoadCsv(string filename) // вызовем при выборе файла csv
+    /* When select a file */
+    public void LoadCsv(string filename) 
     {
       if (string.IsNullOrEmpty(filename)) return;
       Filename = filename;
-      LoadCsvData(true); // и сразу запоним список имен полей
+      LoadCsvData(true); 
     }
     //-------------------------------------------------------------------------
-    void LoadCsvData(bool fieldsOnly = false) // получить данные из csv (или только имена полей)
+    /* Get data from file to Parent.DT, field names to Fields */
+    void LoadCsvData(bool fieldsOnly = false) 
     {
       Fields = new List<string>();
       if (string.IsNullOrEmpty(Filename) || !File.Exists(CommonProc.GetFilePath(Filename))) return;

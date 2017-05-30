@@ -6,11 +6,13 @@
 //
 //  License: GNU Lesser General Public License (LGPLv3)
 //
-//  Email: datastrings.net@gmail.com
-//
+//  Email: pumpet.net@gmail.com
+//  Git: https://github.com/Pumpet/comparator
 //  Copyright (C) Alex Rozanov, 2016 
-
-// Special thanks to Pavel Torgashov for his FastColoredTextBox component!
+//
+// Special thanks to Pavel Torgashov for his excellent FastColoredTextBox component!
+// https://github.com/PavelTorgashov/FastColoredTextBox
+//
 
 using System;
 using System.Windows.Forms;
@@ -21,7 +23,7 @@ namespace Comparator
   static class Program
   {
     [DllImport("kernel32.dll")]
-    private static extern bool AllocConsole(); // для вывода консоли в пакетном режиме
+    private static extern bool AllocConsole(); 
 
     [STAThread]
     static void Main(string[] args)
@@ -51,23 +53,21 @@ namespace Comparator
     static void Legend()
     {
       string Legend = @"
-запуск:
-1) comparator [-profile:""[путь]имя""]
-2) comparator -batch -profile:""[путь]имя"" [-path:""путь""][-log:""[путь]имя""][-type:excel|html][-sendto:""адрес[;адрес...]""][-file:""имя""][-open]
+Launch modes:
+1) comparator [-profile:""[path]filename""]
+2) comparator -batch -profile:""[path]filename"" [-path:""path""][-log:""[path]filename""][-type:excel|html][-sendto:""address[;address...]""][-file:""filename""][-open]
 
-параметры:
--profile:""[путь]имя_профиля"" - должен быть указан, если указан параметр -batch
--batch если не указан - откроем окно с пустым или указанным профилем, 
-       если указан - запускаем в режиме командной строки, используя секцию <Options Host=""BATCH""> в comparator.xml и указанный профиль
+Required:
+-batch – defines console mode
+-profile:""pathfilename"" – file containing the profile;
 
-параметры (необязательные) используемые только в случае -batch 
-игнорируются если -batch не указан, перекрывают аналогичные из профиля и настроек приложения
--path:""путь для результата"" - в конце не должно быть слэша
--log:""[путь]имя_лога"" - лог-файл
--type:excel|html - тип результата
--sendto:""список адресатов для рассылки результата"" - если задан, но список пустой, результат не рассылается
--file:""имя файла результата""
--open - если задан, открыть результат
+Optional, ignored if -batch is not defined, have higher priority than respective settings from the application profile and settings:
+-path:""path"" – path where the results will be saved (do not use ""/"" in the end);
+-log:""[path]filename"" – log file;
+-type:excel|html – result file type (excel or html);
+-sendto:""address[;address...]"" – mailing list; when specified but the list is empty, the results will not be sent;
+-file:""filename"" – result file name;
+-open – when specified, the result file will be opened.
 
 Press any key...";
 

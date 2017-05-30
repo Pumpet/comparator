@@ -1,4 +1,17 @@
-﻿using System;
+﻿//
+//  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+//  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+//  PURPOSE.
+//
+//  License: GNU Lesser General Public License (LGPLv3)
+//
+//  Email: pumpet.net@gmail.com
+//  Git: https://github.com/Pumpet/comparator
+//  Copyright (C) Alex Rozanov, 2016 
+//
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Data;
@@ -10,7 +23,9 @@ using Common;
 namespace SqlSource
 {
   public enum ProviderType { MSSQL, Sybase, SybaseASE15, Oracle, OleDB, ODBC }
-  public interface ISqlModel // интерфейс параметров коннекта и запроса
+  //==========================================================================
+  /* Connect and query parameters */
+  public interface ISqlModel 
   {
     ProviderType Provider { get; set; }
     string Server { get; set; }
@@ -23,7 +38,8 @@ namespace SqlSource
     List<string> Fields { get; set; }
   }
   //===========================================================================
-  class SqlModel : ISqlModel // стандартная реализация ISqlModel
+  /* Default connect and query parameters */
+  class SqlModel : ISqlModel
   {
     public ProviderType Provider { get; set; }
     public string Server { get; set; }
@@ -42,14 +58,15 @@ namespace SqlSource
     }
   }
   //===========================================================================
+  /* SQL connect and query controller */
   public class SqlController
   {
-    ISqlView view;
+    ISqlView view; 
     ISqlModel model;
     DataTable dtResult;
     DbDataAdapter daResult;
-    Thread task; // процесс получения данных
-    TaskContext taskParam = new TaskContext(); // контекст выполнения процесса (задается при запуске процесса получения данных)
+    Thread task; // getting data process
+    TaskContext taskParam = new TaskContext(); // getting data process context (set on start getting data process)
 
     public ISqlView View { get { return view; } }
     public Form Form { get { return view is Form ? (Form)view : new Form(); } }
@@ -58,6 +75,7 @@ namespace SqlSource
     //~~~~~~~~ Init ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
     #region
     //-------------------------------------------------------------------------
+    /* Create with standart Form */
     public static SqlController CreateSqlController(ISqlModel m = null)
     {
       SqlView f = new SqlView();
@@ -74,6 +92,7 @@ namespace SqlSource
       view.GetData += GetData;
       view.StopGetData += StopGetData;
 
+      // view property : model property
       Dictionary<string, string> pn = new Dictionary<string, string>();
       pn.Add("Provider", "Provider");
       pn.Add("Server", "Server");
@@ -85,6 +104,7 @@ namespace SqlSource
       pn.Add("CommandTimeout", "CommandTimeout");
       view.SetDataProps(pn);
 
+      // set model data to view
       view.SetData(model, Enum.GetValues(typeof(ProviderType)), model.Fields);
     }
     #endregion
@@ -110,7 +130,7 @@ namespace SqlSource
       }
     }
     //-------------------------------------------------------------------------
-    /* запуск процесса получения данных */
+    /* Start getting data process */
     public void GetData(string sql, TaskContext context)
     {
       taskParam = context ?? new TaskContext();
@@ -125,13 +145,13 @@ namespace SqlSource
       task.Start(sql);
     }
     //-------------------------------------------------------------------------
-    /* остановка процесса получения данных */
+    /* Stop getting data process */
     public void StopGetData()
     {
       if (task != null && task.IsAlive)
       {
         taskParam.Cancel = true;
-        task.Abort(); // приходится срубать так, иначе не достучишься
+        task.Abort(); // stop daResult.Fill() - Who knows another way?
         task.Join(0); 
         OnTaskFinish(null);
       }
@@ -140,7 +160,7 @@ namespace SqlSource
     //~~~~~~~~ GetData Task ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #region 
     //-------------------------------------------------------------------------
-    /* внутри процесса получения данных */
+    /* Getting data process in Thread */
     void GetDataTask(object sql)
     {
       DbConnection conn = null;
@@ -149,7 +169,7 @@ namespace SqlSource
         conn = GetConnection();
         ClearMemory();
         dtResult = new DataTable();
-        dtResult.RowChanged += ResultRowChange; // для возможности мониторить ход процесса начитки записей
+        dtResult.RowChanged += ResultRowChange; // handler getting row
         daResult = DbProviderFactories.GetFactory(NetProvider).CreateDataAdapter();
         daResult.SelectCommand = conn.CreateCommand();
         daResult.SelectCommand.CommandText = sql.ToString();
@@ -158,12 +178,12 @@ namespace SqlSource
           throw new Exception("No SQL command!");
         daResult.Fill(dtResult);
         if (taskParam.ViewContext != null)
-          taskParam.ViewContext.Send(OnTaskFinish, null); // действия по окончании - выполняем в контексте внешнего вью
+          taskParam.ViewContext.Send(OnTaskFinish, null); // finish action in sync context
         else
           OnTaskFinish(null);
         
       }
-      catch (ThreadAbortException) // срубили процесс
+      catch (ThreadAbortException) // if thread aborted
       {
         if (dtResult != null)
           dtResult.RowChanged -= ResultRowChange;
@@ -212,27 +232,27 @@ namespace SqlSource
       }
     }
     //-------------------------------------------------------------------------
-    /* монитор начитки каждой строки */
+    /* Handler getting row */
     void ResultRowChange(object sender, DataRowChangeEventArgs e)
     {
       if (e.Action == DataRowAction.Commit && dtResult.Rows.Count % 100 == 0)
       {
         if (taskParam.ViewContext != null)
-          taskParam.ViewContext.Send(OnTaskProgress, dtResult.Rows.Count); // ход процесса - выполняем в контексте внешнего вью
+          taskParam.ViewContext.Send(OnTaskProgress, dtResult.Rows.Count); // progress action in sync context
         else
           OnTaskProgress(dtResult.Rows.Count);
       }
     }
     //-------------------------------------------------------------------------
-    /* ход процесса получения данных */
+    /* Progress of getting data process */
     void OnTaskProgress(object step)
     {
       if (taskParam.OnProgress != null && !taskParam.Cancel)
         taskParam.OnProgress((int)step, string.Format("{0} rows received...", dtResult.Rows.Count));
     }
     //-------------------------------------------------------------------------
-    /* завершение получения данных */
-    void OnTaskFinish(object state) // state нужен только потому, что нужен параметр при вызове через SynchronizationContext
+    /* Finish of getting data process */
+    void OnTaskFinish(object state) 
     {
       string msg = "";
       model.Fields.Clear();
@@ -275,13 +295,13 @@ namespace SqlSource
             b["Password"] = model.Pwd;
           }
           break;
-        case ProviderType.SybaseASE15: // используем sybdrvoledb.dll версии 15.0.0.325, более поздние давали кракозябры, если на сервере iso_1
+        case ProviderType.SybaseASE15: // test with sybdrvoledb.dll v.15.0.0.325 is correct with russian symbols in result
           b["Provider"] = "ASEOLEDB";
           b["Data Source"] = model.Server;
           b["Initial Catalog"] = model.DB;
           b["User id"] = model.Login;
           b["Password"] = model.Pwd;
-          b["Language"] = "us_english"; // нужно проверять, везде ли это прокатит, однако если не ставить, можем получить: "Language name in login record 'russian' is not an official name on this ASE. Using default 'us_english' from syslogins instead."
+          b["Language"] = "us_english"; 
           break;
         case ProviderType.Sybase:
           b["Provider"] = "Sybase.ASEOLEDBProvider";

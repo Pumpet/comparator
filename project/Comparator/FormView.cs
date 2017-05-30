@@ -12,8 +12,8 @@ namespace Comparator
 {
   public partial class FormView : Form, IView, ILoger
   {
-    Dictionary<string, BindingSource> bs = new Dictionary<string, BindingSource>(); // инициализация - в InitBindings(), установка - в SetData()
-    Dictionary<string, string> propNames; // инициализация - в SetDataProps(), использование для привязки - в SetBindings()
+    Dictionary<string, BindingSource> bs = new Dictionary<string, BindingSource>(); // init - in InitBindings(), set data - in SetData()
+    Dictionary<string, string> propNames; // init - in SetDataProps(), use for binding - in SetBindings()
     SourcePanel panelSourceA = new SourcePanel();
     SourcePanel panelSourceB = new SourcePanel();
     FormCompare formCompare;
@@ -57,13 +57,13 @@ namespace Comparator
     public event Func<int[], int, int> MoveColPair;
     public event Func<List<string>, List<string>, bool> GetFields;
     //-------------------------------------------------------------------------
-    /* установка имен полей объектов с данными для последующей привязки в SetBindings() */
+    /* Set data object property names for use in binding */
     public void SetDataProps(Dictionary<string, string> names)
     {
       propNames = names ?? new Dictionary<string, string>();
     }
     //-------------------------------------------------------------------------
-    /* прием объектов с данными в соответствующие BindingSources */
+    /* Set data objects to DataSource in BindingSources */
     public void SetData(Dictionary<string, object> bIn)
     {
       checkChanges = false;
@@ -77,7 +77,7 @@ namespace Comparator
       checkChanges = true;
     }
     //-------------------------------------------------------------------------
-    /* обновление для указанных BindingSources */
+    /* Refresh data in BindingSources */
     public void RefreshData(Dictionary<string, object> bIn, params string[] bsNames)
     {
       if (bsNames != null)
@@ -100,7 +100,7 @@ namespace Comparator
       RefreshControls();
     }
     //-------------------------------------------------------------------------
-    /*  необходимые обновления контролов после обновления данных */
+    /* Refresh controls after refresh data */
     void RefreshControls()
     {
       panelSourceA.cboxSheets.Enabled = (panelSourceA.cboxSheets.Items.Count > 0);
@@ -179,6 +179,7 @@ namespace Comparator
       ttip.SetToolTip(panelSourceB.bSetConn, "Set connection and query (Alt+B)");
       InitBindings();
     }
+    //-------------------------------------------------------------------------
     private void bPin_Click(object sender, EventArgs e)
     {
       TopMost = !TopMost;
@@ -278,6 +279,7 @@ namespace Comparator
       }
     }
     //-------------------------------------------------------------------------
+    /* Create a form that starts and displays getting data and comparison processes */
     private void bRun_Click(object sender, EventArgs e)
     {
       EndEdit();
@@ -386,7 +388,7 @@ namespace Comparator
       }
     }
     //------------------------------------------------------------------------
-    /* обработчик для приема данных из формы выбора полей */
+    /* Get data from FormSelectPair */
     private void SetPairs(bool clear, bool key, bool match, List<string> listA, List<string> listB)
     {
       if (FillColPairs == null) return;
@@ -451,7 +453,7 @@ namespace Comparator
     //-------------------------------------------------------------------------
     void InitBindings()
     {
-      // порядок важен для последующего ResetBindings
+      // order is important for ResetBindings!
       bs.Add("Profile", new BindingSource());
       bs.Add("MailResult", new BindingSource());
       bs.Add("Cols", new BindingSource());

@@ -10,13 +10,13 @@ using Common;
 
 namespace Sources
 {
-  public class ExcelContent : SourceContent  // содержимое источника Excel
+  public class ExcelContent : SourceContent  
   {
     public string Filename { get; set; }
     public string Sheet { get; set; }
-    public string RngStart { get; set; }
-    public string RngEnd { get; set; }
-    public bool FirstLineNames { get; set; }
+    public string RngStart { get; set; } // range from (name of cell, column or row)
+    public string RngEnd { get; set; }   // range to
+    public bool FirstLineNames { get; set; } // true if field names must be in the first row
     List<string> sheets = new List<string>();
     [XmlArrayItem("sheet")]
     public List<string> Sheets
@@ -53,7 +53,7 @@ namespace Sources
       GetDataEnd(null, string.Format("{0} rows", Parent.DT != null ? Parent.DT.Rows.Count : 0));
     }
     //-------------------------------------------------------------------------
-    /* данные из excel - в таблицу или только список имен полей */
+    /* Get data from sheet */
     void GetExcelData(bool fieldsOnly = false)
     {
       Excel.Workbook wb = null;
@@ -79,7 +79,7 @@ namespace Sources
       }
     }
     //-------------------------------------------------------------------------
-    /* диапазон по заданным границам или вся занятая область */
+    /* Get Range from specified boundaries (RngStart, RngEnd) or from used range */
     Excel.Range GetRange(Excel.Worksheet ws)
     {
       Excel.Range rg;
@@ -97,20 +97,20 @@ namespace Sources
           c2 = ws.UsedRange.Column + ws.UsedRange.Columns.Count - 1;
         if (rg1 != "")
         {
-          if (Regex.IsMatch(rg1, pattR)) // это строка
+          if (Regex.IsMatch(rg1, pattR)) // RngStart is row
             r1 = ((Excel.Range)ws.Rows[rg1]).Row;
-          else if (Regex.IsMatch(rg1, pattC)) // это столбец
+          else if (Regex.IsMatch(rg1, pattC)) // RngStart is column
             c1 = ((Excel.Range)ws.Columns[rg1]).Column;
-          else
+          else // RngStart is cell
           { r1 = ws.get_Range(rg1).Row; c1 = ws.get_Range(rg1).Column; }
         }
         if (rg2 != "")
         {
-          if (Regex.IsMatch(rg2, pattR))
+          if (Regex.IsMatch(rg2, pattR)) // RngEnd is row
             r2 = ((Excel.Range)ws.Rows[rg2]).Row;
-          else if (Regex.IsMatch(rg2, pattC))
+          else if (Regex.IsMatch(rg2, pattC)) // RngEnd is column
             c2 = ((Excel.Range)ws.Columns[rg2]).Column;
-          else
+          else // RngEnd is cell
           { r2 = ws.get_Range(rg2).Row; c2 = ws.get_Range(rg2).Column; }
         }
         rg = ws.Range[ws.Cells[r1, c1], ws.Cells[r2, c2]];
@@ -122,7 +122,7 @@ namespace Sources
       return rg;
     }
     //-------------------------------------------------------------------------
-    /* данные в Parent.DT или только имена полей в Fields из указанного диапазона листа excel */
+    /* Get data from Range to Parent.DT, field names to Fields */
     void SheetToTable(Excel.Worksheet ws, Excel.Range rg = null, bool fieldsOnly = false)
     {
       Fields = new List<string>();
@@ -136,7 +136,7 @@ namespace Sources
       DataTable dt = new DataTable();
 
       int r0 = (FirstLineNames ? 1 : 0);
-      //поля        
+      // fields
       for (int c = 1; c <= rg.Columns.Count; c++)
       {
         Type type = typeof(String);
@@ -155,11 +155,11 @@ namespace Sources
       }
       Fields.AddRange(dt.Columns.OfType<DataColumn>().Select(x => x.ColumnName));
 
-      //данные
+      // data
       if (!fieldsOnly)
       {
-        object[,] dtArr; // для данных Range
-        if (rg.Columns.Count == 1 && rg.Rows.Count == 1) // т.к.в случае одной ячейки value не возвращает массив
+        object[,] dtArr; // for data from Range
+        if (rg.Columns.Count == 1 && rg.Rows.Count == 1) // because if it's only one cell get_Value() not return an array
         {
           dtArr = (object[,])Array.CreateInstance(typeof(Object), new[] { 1, 1 }, new[] { 1, 1 });
           dtArr[1, 1] = rg.get_Value();
@@ -168,7 +168,7 @@ namespace Sources
           dtArr = (object[,])rg.get_Value();
 
         Parent.DT = dt.Clone();
-        object[] dtRow = new object[dtArr.GetLength(1)]; // для формирования строки
+        object[] dtRow = new object[dtArr.GetLength(1)]; // array for table row
         for (int r = r0; r < dtArr.GetLength(0); r++)
         {
           for (int c = 0; c < dtArr.GetLength(1); c++)

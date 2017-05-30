@@ -46,7 +46,7 @@ namespace Common
             ct.Boundary = null;
             ct.MediaType = "application/octet-stream";
             ct.Name = fn ?? String.Empty;
-            if (ct.Name != fn) // проблема с русскими именами > 20 символов - превращаются в Base64. Как решать - непонятно, поэтому тупо обрезаем.
+            if (ct.Name != fn) // problem with russian names is more than 20 characters - they turn into Base64. Don't know to solve...
               ct.Name = fn.Substring(0, 10) + "~" + Path.GetExtension(fn);
             Attachment att = new Attachment(attachFiles[i], ct);
             mail.Attachments.Add(att);

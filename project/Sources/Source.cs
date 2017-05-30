@@ -1,54 +1,71 @@
-﻿using System;
+﻿//
+//  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+//  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+//  PURPOSE.
+//
+//  License: GNU Lesser General Public License (LGPLv3)
+//
+//  Email: pumpet.net@gmail.com
+//  Git: https://github.com/Pumpet/comparator
+//  Copyright (C) Alex Rozanov, 2016 
+//
+
+using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using DataTable = System.Data.DataTable;
 
 namespace Sources
 {
-  public enum SourceType { Database, Excel, CSV, XML } // виды источников данных
+  // types of data sources
+  public enum SourceType { Database, Excel, CSV, XML } 
   //===========================================================================
-  public class Source // источник данных для сверки
+  /* Data Source for comparison */
+  public class Source 
   {
     string name;
     public string Name { get { return string.IsNullOrEmpty(name) ? InnerName : name; } set { name = value; } }
     [XmlIgnore]
-    public string InnerName { get; set; } // "внутреннее" имя источника - по умолчанию, для сообщений
+    public string InnerName { get; set; } // default source name, for messages
 
-    SourceType srcType;
+    SourceType srcType; // data source type
     public SourceType SrcType
     {
       get { return srcType; }
       set
       {
         srcType = value;
-        content = GetContent(value); // текущее содержимое источника - в зависимости от его типа
+        content = GetContent(value); // set current source content (from already created or new) in depend of its type 
         content.Parent = this;
       }
     }
 
-    SourceContent content;
+    SourceContent content; // data source content - object that getting data from specific type source
     public SourceContent Content
     {
       get { return content; }
       set
       {
         content = value;
-        currContent[srcType] = value; // содержимое источника для типа - для переключения к уже созданому
+        currContent[srcType] = value; 
         currContent[srcType].Parent = this;
       }
     }
 
     DataTable dt;
     [XmlIgnore]
-    public DataTable DT { get { return dt; } set { dt = value; } } // данные источника
+    public DataTable DT { get { return dt; } set { dt = value; } } // source data
     [XmlIgnore]
-    public bool InProc { get; set; } // признак работающего процесса получения данных
+    public bool InProc { get; set; } // true if active get data process
 
-    Dictionary<SourceType, SourceContent> currContent = new Dictionary<SourceType, SourceContent>(); // созданное содержимое по типу
+    Dictionary<SourceType, SourceContent> currContent = new Dictionary<SourceType, SourceContent>(); // already created contents
+
+    // get already created typed content:
     [XmlIgnore]
-    public DbContent DbSource { get { return (DbContent)GetContent(SourceType.Database); } }
+    public DbContent DbSource { get { return (DbContent)GetContent(SourceType.Database); } } 
     [XmlIgnore]
-    public ExcelContent ExcelSource { get { return (ExcelContent)GetContent(SourceType.Excel); } }
+    public ExcelContent ExcelSource { get { return (ExcelContent)GetContent(SourceType.Excel); } } 
     [XmlIgnore]
     public CsvContent CsvSource { get { return (CsvContent)GetContent(SourceType.CSV); } }
     [XmlIgnore]
@@ -60,7 +77,8 @@ namespace Sources
       SrcType = SourceType.Database;
     }
     //-------------------------------------------------------------------------
-    private SourceContent GetContent(SourceType type) // новое или уже имеющееся содержимое указанного типа
+    // Get already created or create new content according of type
+    private SourceContent GetContent(SourceType type) 
     {
       if (!currContent.ContainsKey(type))
         switch (type)
@@ -78,16 +96,17 @@ namespace Sources
             currContent.Add(type, new XmlContent());
             break;
         }
-      if (currContent[type] != null) currContent[type].Parent = this;
+      if (currContent[type] != null) currContent[type].Parent = this; // link content object to this object
       return currContent[type];
     }
     //-------------------------------------------------------------------------
-    public void Check() // проверить содержимое
+    // Check current content
+    public void Check() 
     {
       Content.Check();
     }
     //-------------------------------------------------------------------------
-    public void DTClear() // очистить данные
+    public void DTClear() 
     {
       if (DT != null)
       {

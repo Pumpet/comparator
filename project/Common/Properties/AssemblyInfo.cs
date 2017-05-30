@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Common")]
 [assembly: AssemblyDescription("Common tools and objects")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("free")]
+[assembly: AssemblyCompany("Pumpet")]
 [assembly: AssemblyProduct("Common")]
-[assembly: AssemblyCopyright("free")]
+[assembly: AssemblyCopyright("GNU Lesser General Public License (LGPLv3)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
